@@ -29,7 +29,7 @@ function initializeUser(uid) {
 	const users = readUsers();
 	const user = {
 		id: uid,
-		standing: -1,
+		standing: users.length + 1,
 		streak: 0,
 		challenging: [],
 		challengedBy: [],
@@ -60,13 +60,21 @@ client.on("messageCreate", async (message) => {
         const users = readUsers();
         const me = users.find((user) => user.id == message.author.id);
 		const command = message.content.split(" ").at(0).substring(1);
+        const args = message.content.split(" ");
+        args.shift();
+        console.log(args);
 		console.log(command);
 
 
 		switch (command) {
 			case "stats":
-                channel.send(JSON.stringify(me.streak));
+                channel.send(("Standing: " + me.standing + "\nStreak: " + me.streak));
 				break;
+            case "challenge":
+            case "vs":
+                channel.send("Challenging " + args[0]);
+                break;
+                
 		}
 	}
 });
