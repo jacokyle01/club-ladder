@@ -38,5 +38,10 @@ function writeUsers(users) {
 client.login(process.env.DISCORD_TOKEN);
 client.on("messageCreate", async (message) => {
 	console.log(message);
-    initializeUser(message.author.id);
+    const users = readUsers();
+    //initialize user if necessary
+    if (!users.find(user => user.id == message.author.id)) {
+        initializeUser(message.author.id);
+    }
+
 });
