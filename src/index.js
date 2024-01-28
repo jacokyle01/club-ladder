@@ -33,26 +33,31 @@ function initializeUser(uid) {
 		streak: 0,
 		challenging: [],
 		challengedBy: [],
-        alias: ""
+		alias: "",
 	};
 	users.push(user);
 	writeUsers(users);
 }
 
 function updateUser(userId, updatedData) {
-    const users = readUsers();
-    const index = users.findIndex(user => user.id === userId);
-  
-    if (index !== -1) {
-      users[index] = { ...users[index], ...updatedData };
-      writeUsers(users);
-    }
-  }
+	const users = readUsers();
+	const index = users.findIndex((user) => user.id === userId);
 
+	if (index !== -1) {
+		users[index] = { ...users[index], ...updatedData };
+		writeUsers(users);
+	}
+}
 
 function writeUsers(users) {
 	fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf8");
 }
+
+const prettyIds = (users, ids) => {
+	let pretty = "";
+	ids.forEach((id) => (pretty += " <@" + id + ">"));
+	return pretty;
+};
 
 client.login(process.env.DISCORD_TOKEN);
 client.on("messageCreate", async (message) => {
@@ -78,21 +83,42 @@ client.on("messageCreate", async (message) => {
 
 		switch (command) {
 			case "stats":
-				channel.send("Alias " + me.alias + "\nStanding: " + me.standing + "\nStreak: " + me.streak);
+				channel.send(
+					"Alias " +
+						me.alias +
+						"\nStanding: " +
+						me.standing +
+						"\nStreak: " +
+						me.streak + 
+                        "\nChallenging: " +
+                        prettyIds(users, me.challenging) +
+                        "\nChallenged by " + 
+                        prettyIds(users, me.challengedBy)
+				);
 				break;
-			case "challenge":
+			case "challenge": // ex. !challenge @Presiident
 			case "vs":
 				channel.send("⚔️  Challenging " + args[0] + " ⚔️");
 				//assume usage is "!challenge @[username]"
 				const numbers = args[0].match(/\d+/g);
-                //TODO null safety here 
-                const challengedId = numbers[0];
+				//TODO null safety here
+				const challengedId = numbers[0];
+				const challengee = users.find((user) => user.id == challengedId);
 				console.log(challengedId);
+
+				//update challenger and challengee
+				updateUser(me.id, {
+					challenging: [...me.challenging, challengedId],
+				});
+				updateUser(challengedId, {
+					challengedBy: [...challengee.challengedBy, me.id],
+				});
 				break;
-            case "alias":
-                if (args[0]) {
-                    updateUser(me.id, {"alias": args[0]})
-                }
+
+			case "alias":
+				if (args[0]) {
+					updateUser(me.id, { alias: args[0] });
+				}
 		}
 	}
 });
