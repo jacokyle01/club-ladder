@@ -18,36 +18,6 @@ const client = new Client({
 	],
 });
 
-function readUsers() {
-	try {
-		const data = fs.readFileSync(filePath, "utf8");
-		return JSON.parse(data);
-	} catch (error) {
-		return [];
-	}
-}
-
-// function initializeUser(users, uid) {
-// 	const user = {
-// 		id: uid,
-// 		standing: users.length + 1,
-// 		streak: 0,
-// 		challenging: [],
-// 		challengedBy: [],
-// 		alias: "",
-// 	};
-// 	return user;
-// }
-
-// function updateUser(userId, updatedData) {
-// 	const index = users.findIndex((user) => user.id === userId);
-
-// 	if (index !== -1) {
-// 		users[index] = { ...users[index], ...updatedData };
-// 		writeUsers(users);
-// 	}
-// }
-
 function writeUsers(users) {
 	fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf8");
 }
@@ -62,14 +32,14 @@ const findIndexById = (users, id) => users.findIndex((user) => user.id == id);
 const userFromId = (users, id) => users.find((user) => user.id == id);
 
 async function tryInitializeId(userId) {
-	// try {
 	console.log("trying");
 	const user = await User.findOne({ id: userId });
 	if (user == null) {
         console.log("SAVING THIS... " + userId);
+        const count = await User.countDocuments({});
 		const me = new User({
 			id: userId,
-			standing: -1,
+			standing: count + 1,
 			alias: "",
 			challenging: [],
 			challengedBy: [],
@@ -93,7 +63,6 @@ client.on("messageCreate", async (message) => {
 		return;
 	}
 
-	const users = readUsers();
 	const cid = "1201006010739990693";
     const botid = "1201005650885488690";
 	const channel = client.channels.cache.get(cid);
@@ -114,7 +83,6 @@ client.on("messageCreate", async (message) => {
 
 		switch (command) {
 			case "stats":
-				console.log("STATS");
 				console.log(channel.id);
 				channel.send(
 					"Alias: " +
@@ -128,7 +96,6 @@ client.on("messageCreate", async (message) => {
 						"\nChallenged by " +
 						prettyIds(users, me.challengedBy)
 				);
-				console.log("hi sher");
 				break;
 
 			case "alias":
@@ -168,6 +135,11 @@ client.on("messageCreate", async (message) => {
                 await me.save();
                 await challengee.save();
                 channel.send("Challenge sent!");
+                break;
+            case "win":
+                if (message.mentions.users.at(0) == undefined) break;
+                const opponentId = message.mentions.users.at(0).id
+
 
 		}
 	}
