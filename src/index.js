@@ -42,8 +42,8 @@ async function tryInitializeId(userId) {
 			alias: "",
 			challenging: [],
 			challengedBy: [],
-            wins: 0,
-            losses: 0
+			wins: 0,
+			losses: 0,
 		});
 		await me.save();
 	}
@@ -94,7 +94,10 @@ client.on("messageCreate", async (message) => {
 						prettyIds(me.challenging) +
 						"\nChallenged by " +
 						prettyIds(me.challengedBy) +
-                        "\nW/L ratio: " + me.wins + "/" + me.losses
+						"\nW/L ratio: " +
+						me.wins +
+						"/" +
+						me.losses
 				);
 				break;
 
@@ -137,7 +140,7 @@ client.on("messageCreate", async (message) => {
 				channel.send("Challenge sent!");
 				break;
 			case "win":
-            case "w":
+			case "w":
 				if (message.mentions.users.at(0) == undefined) break;
 				const opponentId = message.mentions.users.at(0).id;
 				//find who was the challenger and challengee
@@ -155,29 +158,33 @@ client.on("messageCreate", async (message) => {
 					me.streak++;
 					opponent.streak = 0;
 
-                    //assign W/L
-                    me.wins++;
-                    opponent.losses++;
+					//assign W/L
+					me.wins++;
+					opponent.losses++;
 
-                    //remove this challenge attribute
-                    me.challenging = me.challenging.filter(opponent => opponent != opponentId);
-                    opponent.challengedBy = opponent.challengedBy.filter(challenger => challenger != me.id);
+					//remove this challenge attribute
+					me.challenging = me.challenging.filter(
+						(opponent) => opponent != opponentId
+					);
+					opponent.challengedBy = opponent.challengedBy.filter(
+						(challenger) => challenger != me.id
+					);
 
-                    await me.save();
-                    await opponent.save();
-                    channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
+					await me.save();
+					await opponent.save();
+					channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
 				}
-                break;
-            case "standings":
-            case "lb":
-                let lb = "";
-                const users = await User.find({});
-                users.sort((u1, u2) => u1.standing - u2.standing);
-                users.forEach(user => {
-                    lb += `${user.standing}\t<@${user.id }>\twins: ${user.wins}, losses: ${user.losses}\n`
-                })
-                channel.send(lb);
+				break;
+			case "standings":
+			case "lb":
+				let lb = "";
 
+				const users = await User.find({});
+				users.sort((u1, u2) => u1.standing - u2.standing);
+				users.forEach((user) => {
+					lb += `${user.standing}\t<@${user.id}>\twins: ${user.wins}, losses: ${user.losses}\n`;
+				});
+				channel.send(lb);
 		}
 	}
 });
