@@ -30,6 +30,16 @@ const userSchema = new mongoose.Schema({
     type: Array,
     required: true,
     default: []
+  }, 
+  wins: {
+    type: Number,
+    required: true,
+    default: 0
+  },                //results must be decisive
+  losses: {
+    type: Number,
+    required: true,
+    default: 0
   }
 })
 

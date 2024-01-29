@@ -22,7 +22,7 @@ function writeUsers(users) {
 	fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf8");
 }
 
-const prettyIds = (users, ids) => {
+const prettyIds = (ids) => {
 	let pretty = "";
 	ids.forEach((id) => (pretty += " <@" + id + ">"));
 	return pretty;
@@ -35,18 +35,17 @@ async function tryInitializeId(userId) {
 	console.log("trying");
 	const user = await User.findOne({ id: userId });
 	if (user == null) {
-        console.log("SAVING THIS... " + userId);
-        const count = await User.countDocuments({});
+		const count = await User.countDocuments({});
 		const me = new User({
 			id: userId,
 			standing: count + 1,
 			alias: "",
 			challenging: [],
 			challengedBy: [],
+            wins: 0,
+            losses: 0
 		});
 		await me.save();
-        const testttt = await User.findOne({id: userId});
-        console.log("BUT GET THIS " + testttt.id);
 	}
 	return false;
 }
@@ -64,15 +63,15 @@ client.on("messageCreate", async (message) => {
 	}
 
 	const cid = "1201006010739990693";
-    const botid = "1201005650885488690";
+	const botid = "1201005650885488690";
 	const channel = client.channels.cache.get(cid);
 
-    console.log("AUTHOR ID " + message.author.id);
+	console.log("AUTHOR ID " + message.author.id);
 	await tryInitializeId(message.author.id);
 	console.log("well");
 	channel.send("always");
 	if (message.content.startsWith("!")) {
-        console.log(message);
+		console.log(message);
 		let me = await User.findOne({ id: message.author.id });
 		console.log("ME" + me.challengedBy);
 		const command = message.content.split(" ").at(0).substring(1);
@@ -92,9 +91,9 @@ client.on("messageCreate", async (message) => {
 						"\nStreak: " +
 						me.streak +
 						"\nChallenging: " +
-						prettyIds(users, me.challenging) +
+						prettyIds(me.challenging) +
 						"\nChallenged by " +
-						prettyIds(users, me.challengedBy)
+						prettyIds(me.challengedBy)
 				);
 				break;
 
@@ -106,41 +105,65 @@ client.on("messageCreate", async (message) => {
 				break;
 			case "challenge": // ex. !challenge @Presiident
 			case "vs":
-                if (message.mentions.users.at(0) == undefined) break;
-                const challengeeId = message.mentions.users.at(0).id
-                if (challengeeId == botid) {
-                    channel.send("You can't challenge the robot!");
-                    break;
-                }
-                if (challengeeId == me.id) {
-                    channel.send("You can't challenge yourself!");
-                    break;
-                }
+				if (message.mentions.users.at(0) == undefined) break;
+				const challengeeId = message.mentions.users.at(0).id;
+				if (challengeeId == botid) {
+					channel.send("You can't challenge the robot!");
+					break;
+				}
+				if (challengeeId == me.id) {
+					channel.send("You can't challenge yourself!");
+					break;
+				}
 
 				console.log("VS. " + challengeeId);
-                await tryInitializeId(challengeeId);
+				await tryInitializeId(challengeeId);
 
-                const challengee = await User.findOne({ id: challengeeId });
-                console.log(challengee);
+				const challengee = await User.findOne({ id: challengeeId });
+				console.log(challengee);
 
-                //TODO more conditions
-                if (me.challenging.includes(challengeeId)) {
-                    channel.send("You are already challenging this person");
-                    break;
-                }
+				//TODO more conditions
+				if (me.challenging.includes(challengeeId)) {
+					channel.send("You are already challenging this person");
+					break;
+				}
 
-                //all conditions tested, initiate challenge
-                me.challenging.push(challengeeId);
-                challengee.challengedBy.push(me.id);
-                await me.save();
-                await challengee.save();
-                channel.send("Challenge sent!");
-                break;
-            case "win":
-                if (message.mentions.users.at(0) == undefined) break;
-                const opponentId = message.mentions.users.at(0).id
+				//all conditions tested, initiate challenge
+				me.challenging.push(challengeeId);
+				challengee.challengedBy.push(me.id);
+				await me.save();
+				await challengee.save();
+				channel.send("Challenge sent!");
+				break;
+			case "win":
+				if (message.mentions.users.at(0) == undefined) break;
+				const opponentId = message.mentions.users.at(0).id;
+				//find who was the challenger and challengee
 
+				//challenger won
+				if (me.challenging.includes(opponentId)) {
+					const opponent = await User.findOne({ id: opponentId });
 
+					//swap standings for now TODO
+					let temp = me.standing;
+					me.standing = opponent.standing;
+					opponent.standing = temp;
+
+					//assign streaks
+					me.streak++;
+					opponent.streak = 0;
+
+                    //assign W/L
+                    me.wins++;
+                    opponent.losses++;
+
+                    //remove this challenge attribute
+                    me.challenging = me.challenging.filter(opponent => opponent != opponentId);
+                    opponent.challengedBy = opponent.challengedBy.filter(challenger => challenger != me.id);
+
+                    await me.save();
+                    await opponent.save();
+				}
 		}
 	}
 });
