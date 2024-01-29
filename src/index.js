@@ -75,21 +75,7 @@ async function tryInitializeId(userId) {
 		});
 		await me.save();
 	}
-	return false; // If user is not null, the ID exists
-	// } catch (error) {
-	//     console.log("catching");
-
-	// 	//   console.error('Error checking if ID is verified:', error);
-	// 	const me = new User({
-	// 		id: message.author.id,
-	// 		standing: -1,
-	// 		alias: "",
-	// 		challenging: [],
-	// 		challengedBy: [],
-	// 	});
-	// 	await me.save();
-	// 	return true; // Handle the error as needed
-	// }
+	return false;
 }
 
 mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
@@ -108,88 +94,89 @@ client.on("messageCreate", async (message) => {
 	const channel = client.channels.cache.get(cid);
 
 	await tryInitializeId(message.author.id);
-	// const me = new User({
-	// 	id: message.author.id,
-	// 	standing: -1,
-	// 	alias: "",
-	// 	challenging: [],
-	// 	challengedBy: [],
-	// });
-	// await me.save();
-
-	//initialize user if necessary
-	// const senderId = message.author.id;
-	// console.log("sender ID " + senderId);
-	// if (findIndexById(users, senderId) == -1) {
-	//     console.log("initializing");
-	// 	users.push(initializeUser(users, senderId));
-	// }
 	console.log("well");
 	channel.send("always");
-	// if (message.content.startsWith("!")) {
-	// 	let me = userFromId(users, senderId);
-	// 	console.log("ME" + me.challengedBy);
-	// 	const command = message.content.split(" ").at(0).substring(1);
-	// 	const args = message.content.split(" ");
-	// 	args.shift();
-	// 	console.log(args);
-	// 	console.log(command);
+	if (message.content.startsWith("!")) {
+		let me = await User.findOne({ id: message.author.id });
+		console.log("ME" + me.challengedBy);
+		const command = message.content.split(" ").at(0).substring(1);
+		const args = message.content.split(" ");
+		args.shift();
+		console.log(args);
+		console.log(command);
 
-	// 	switch (command) {
-	// 		case "stats":
-	// 			console.log("STATS");
-	// 			console.log(channel.id);
-	// 			channel.send(
-	// 				"Alias " +
-	// 					me.alias +
-	// 					"\nStanding: " +
-	// 					me.standing +
-	// 					"\nStreak: " +
-	// 					me.streak +
-	// 					"\nChallenging: " +
-	// 					prettyIds(users, me.challenging) +
-	// 					"\nChallenged by " +
-	// 					prettyIds(users, me.challengedBy)
-	// 			);
-	// 			console.log("hi sher");
-	// 			break;
-	// 		case "challenge": // ex. !challenge @Presiident
-	// 		case "vs":
-	// 			//assume usage is "!challenge @[username] and username is initialized"
-	// 			const numbers = args[0].match(/\d+/g);
-	// 			//TODO null safety here
-	// 			const challengeeId = numbers[0];
-	// 			let challengee = userFromId(users, challengeeId);
+		switch (command) {
+			case "stats":
+				console.log("STATS");
+				console.log(channel.id);
+				channel.send(
+					"Alias: " +
+						me.alias +
+						"\nStanding: " +
+						me.standing +
+						"\nStreak: " +
+						me.streak +
+						"\nChallenging: " +
+						prettyIds(users, me.challenging) +
+						"\nChallenged by " +
+						prettyIds(users, me.challengedBy)
+				);
+				console.log("hi sher");
+				break;
 
-	// 			//don't challenge the same person twice
-	// 			if (me.challenging.includes(challengeeId)) {
-	// 				channel.send("You are already challenging this person");
-	// 				break;
-	// 			}
-
-	// 			channel.send("⚔️  Challenging " + args[0] + " ⚔️");
-	// 			//update challenger and challengee
-	// 			users[findIndexById(users, me.id)] = {
-	// 				...me,
-	// 				challenging: [...me.challenging, challengeeId],
-	// 			};
-
-	// 			users[findIndexById(users, challengeeId)] = {
-	// 				...challengee,
-	// 				challenged: [...challengee.challengedBy, me.id],
-	// 			};
-	// 			console.log(challengee);
-	// 			break;
-
-	// 		case "alias":
-	// 			if (args[0]) {
-	// 				users[findIndexById[senderId]] = {
-	//                     ...me,
-	//                     alias: args[0]
-	//                 }
-	// 			}
-	// 			break;
-	// 	}
-	// }
-	// writeUsers(users);
+			case "alias":
+				if (args.length > 0) {
+					me.alias = args[0];
+                    await me.save();
+				}
+				// if (args.length > 0) {
+				//     User.findOneAndUpdate(
+				//         {id: message.author.id},
+				//         {$set: {alias: args[0]}},
+				//         { new: true}
+				//     );
+				// }
+				break;
+		}
+	}
 });
+// 		case "challenge": // ex. !challenge @Presiident
+// 		case "vs":
+// 			//assume usage is "!challenge @[username] and username is initialized"
+// 			const numbers = args[0].match(/\d+/g);
+// 			//TODO null safety here
+// 			const challengeeId = numbers[0];
+// 			let challengee = userFromId(users, challengeeId);
+
+// 			//don't challenge the same person twice
+// 			if (me.challenging.includes(challengeeId)) {
+// 				channel.send("You are already challenging this person");
+// 				break;
+// 			}
+
+// 			channel.send("⚔️  Challenging " + args[0] + " ⚔️");
+// 			//update challenger and challengee
+// 			users[findIndexById(users, me.id)] = {
+// 				...me,
+// 				challenging: [...me.challenging, challengeeId],
+// 			};
+
+// 			users[findIndexById(users, challengeeId)] = {
+// 				...challengee,
+// 				challenged: [...challengee.challengedBy, me.id],
+// 			};
+// 			console.log(challengee);
+// 			break;
+
+// 		case "alias":
+// 			if (args[0]) {
+// 				users[findIndexById[senderId]] = {
+//                     ...me,
+//                     alias: args[0]
+//                 }
+// 			}
+// 			break;
+// 	}
+// }
+// writeUsers(users);
+// });
