@@ -127,56 +127,40 @@ client.on("messageCreate", async (message) => {
 			case "alias":
 				if (args.length > 0) {
 					me.alias = args[0];
-                    await me.save();
+					await me.save();
 				}
-				// if (args.length > 0) {
-				//     User.findOneAndUpdate(
-				//         {id: message.author.id},
-				//         {$set: {alias: args[0]}},
-				//         { new: true}
-				//     );
-				// }
 				break;
+			case "challenge": // ex. !challenge @Presiident
+			case "vs":
+                if (message.mentions.users.at(0) == undefined) break;
+
+				console.log("VS. " + message.mentions.users.at(0).id);
+				if (args.length == 0) break;
+				//assume usage is "!challenge @[username] and username is initialized"
+				const numbers = args[0].match(/\d+/g);
+			// //TODO null safety here
+			// const challengeeId = numbers[0];
+			// let challengee = userFromId(users, challengeeId);
+
+			// //don't challenge the same person twice
+			// if (me.challenging.includes(challengeeId)) {
+			// 	channel.send("You are already challenging this person");
+			// 	break;
+			// }
+
+			// channel.send("⚔️  Challenging " + args[0] + " ⚔️");
+			// //update challenger and challengee
+			// users[findIndexById(users, me.id)] = {
+			// 	...me,
+			// 	challenging: [...me.challenging, challengeeId],
+			// };
+
+			// users[findIndexById(users, challengeeId)] = {
+			// 	...challengee,
+			// 	challenged: [...challengee.challengedBy, me.id],
+			// };
+			// console.log(challengee);
+			// break;
 		}
 	}
 });
-// 		case "challenge": // ex. !challenge @Presiident
-// 		case "vs":
-// 			//assume usage is "!challenge @[username] and username is initialized"
-// 			const numbers = args[0].match(/\d+/g);
-// 			//TODO null safety here
-// 			const challengeeId = numbers[0];
-// 			let challengee = userFromId(users, challengeeId);
-
-// 			//don't challenge the same person twice
-// 			if (me.challenging.includes(challengeeId)) {
-// 				channel.send("You are already challenging this person");
-// 				break;
-// 			}
-
-// 			channel.send("⚔️  Challenging " + args[0] + " ⚔️");
-// 			//update challenger and challengee
-// 			users[findIndexById(users, me.id)] = {
-// 				...me,
-// 				challenging: [...me.challenging, challengeeId],
-// 			};
-
-// 			users[findIndexById(users, challengeeId)] = {
-// 				...challengee,
-// 				challenged: [...challengee.challengedBy, me.id],
-// 			};
-// 			console.log(challengee);
-// 			break;
-
-// 		case "alias":
-// 			if (args[0]) {
-// 				users[findIndexById[senderId]] = {
-//                     ...me,
-//                     alias: args[0]
-//                 }
-// 			}
-// 			break;
-// 	}
-// }
-// writeUsers(users);
-// });
