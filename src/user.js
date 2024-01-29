@@ -1,8 +1,10 @@
 const mongoose = require('mongoose')
+require('mongoose-long')(mongoose);
+const {Types: {Long}} = mongoose;
 
 const userSchema = new mongoose.Schema({
   id: {
-    type: Number,
+    type: Long,
     required: true
   },
   standing: {

@@ -66,6 +66,7 @@ async function tryInitializeId(userId) {
 	console.log("trying");
 	const user = await User.findOne({ id: userId });
 	if (user == null) {
+        console.log("SAVING THIS... " + userId);
 		const me = new User({
 			id: userId,
 			standing: -1,
@@ -74,6 +75,8 @@ async function tryInitializeId(userId) {
 			challengedBy: [],
 		});
 		await me.save();
+        const testttt = await User.findOne({id: userId});
+        console.log("BUT GET THIS " + testttt.id);
 	}
 	return false;
 }
@@ -84,6 +87,7 @@ db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to Database"));
 
 client.login(process.env.DISCORD_TOKEN);
+
 client.on("messageCreate", async (message) => {
 	if (message?.author.bot) {
 		return;
@@ -91,12 +95,15 @@ client.on("messageCreate", async (message) => {
 
 	const users = readUsers();
 	const cid = "1201006010739990693";
+    const botid = "1201005650885488690";
 	const channel = client.channels.cache.get(cid);
 
+    console.log("AUTHOR ID " + message.author.id);
 	await tryInitializeId(message.author.id);
 	console.log("well");
 	channel.send("always");
 	if (message.content.startsWith("!")) {
+        console.log(message);
 		let me = await User.findOne({ id: message.author.id });
 		console.log("ME" + me.challengedBy);
 		const command = message.content.split(" ").at(0).substring(1);
@@ -133,34 +140,35 @@ client.on("messageCreate", async (message) => {
 			case "challenge": // ex. !challenge @Presiident
 			case "vs":
                 if (message.mentions.users.at(0) == undefined) break;
+                const challengeeId = message.mentions.users.at(0).id
+                if (challengeeId == botid) {
+                    channel.send("You can't challenge the robot!");
+                    break;
+                }
+                if (challengeeId == me.id) {
+                    channel.send("You can't challenge yourself!");
+                    break;
+                }
 
-				console.log("VS. " + message.mentions.users.at(0).id);
-				if (args.length == 0) break;
-				//assume usage is "!challenge @[username] and username is initialized"
-				const numbers = args[0].match(/\d+/g);
-			// //TODO null safety here
-			// const challengeeId = numbers[0];
-			// let challengee = userFromId(users, challengeeId);
+				console.log("VS. " + challengeeId);
+                await tryInitializeId(challengeeId);
 
-			// //don't challenge the same person twice
-			// if (me.challenging.includes(challengeeId)) {
-			// 	channel.send("You are already challenging this person");
-			// 	break;
-			// }
+                const challengee = await User.findOne({ id: challengeeId });
+                console.log(challengee);
 
-			// channel.send("⚔️  Challenging " + args[0] + " ⚔️");
-			// //update challenger and challengee
-			// users[findIndexById(users, me.id)] = {
-			// 	...me,
-			// 	challenging: [...me.challenging, challengeeId],
-			// };
+                //TODO more conditions
+                if (me.challenging.includes(challengeeId)) {
+                    channel.send("You are already challenging this person");
+                    break;
+                }
 
-			// users[findIndexById(users, challengeeId)] = {
-			// 	...challengee,
-			// 	challenged: [...challengee.challengedBy, me.id],
-			// };
-			// console.log(challengee);
-			// break;
+                //all conditions tested, initiate challenge
+                me.challenging.push(challengeeId);
+                challengee.challengedBy.push(me.id);
+                await me.save();
+                await challengee.save();
+                channel.send("Challenge sent!");
+
 		}
 	}
 });
