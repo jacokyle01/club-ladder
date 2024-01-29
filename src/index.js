@@ -93,7 +93,8 @@ client.on("messageCreate", async (message) => {
 						"\nChallenging: " +
 						prettyIds(me.challenging) +
 						"\nChallenged by " +
-						prettyIds(me.challengedBy)
+						prettyIds(me.challengedBy) +
+                        "\nW/L ratio: " + me.wins + "/" + me.losses
 				);
 				break;
 
@@ -136,6 +137,7 @@ client.on("messageCreate", async (message) => {
 				channel.send("Challenge sent!");
 				break;
 			case "win":
+            case "w":
 				if (message.mentions.users.at(0) == undefined) break;
 				const opponentId = message.mentions.users.at(0).id;
 				//find who was the challenger and challengee
@@ -163,7 +165,19 @@ client.on("messageCreate", async (message) => {
 
                     await me.save();
                     await opponent.save();
+                    channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
 				}
+                break;
+            case "standings":
+            case "lb":
+                let lb = "";
+                const users = await User.find({});
+                users.sort((u1, u2) => u1.standing - u2.standing);
+                users.forEach(user => {
+                    lb += `${user.standing}\t<@${user.id }>\twins: ${user.wins}, losses: ${user.losses}\n`
+                })
+                channel.send(lb);
+
 		}
 	}
 });
