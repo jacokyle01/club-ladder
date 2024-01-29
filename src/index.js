@@ -2,6 +2,8 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
 const filePath = path.join(__dirname, "users.json");
+const mongoose = require("mongoose");
+const User = require('./user')
 
 dotenv.config();
 const url = "https://discord.com/channels/1201006010739990693";
@@ -25,17 +27,17 @@ function readUsers() {
 	}
 }
 
-function initializeUser(users, uid) {
-	const user = {
-		id: uid,
-		standing: users.length + 1,
-		streak: 0,
-		challenging: [],
-		challengedBy: [],
-		alias: "",
-	};
-	return user;
-}
+// function initializeUser(users, uid) {
+// 	const user = {
+// 		id: uid,
+// 		standing: users.length + 1,
+// 		streak: 0,
+// 		challenging: [],
+// 		challengedBy: [],
+// 		alias: "",
+// 	};
+// 	return user;
+// }
 
 // function updateUser(userId, updatedData) {
 // 	const index = users.findIndex((user) => user.id === userId);
@@ -59,8 +61,14 @@ const prettyIds = (users, ids) => {
 const findIndexById = (users, id) => users.findIndex((user) => user.id == id);
 const userFromId = (users, id) => users.find((user) => user.id == id);
 
+
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true })
+const db = mongoose.connection
+db.on('error', (error) => console.error(error))
+db.once('open', () => console.log('Connected to Database'))
+
 client.login(process.env.DISCORD_TOKEN);
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
 	if (message?.author.bot) {
 		return;
 	}
@@ -69,14 +77,24 @@ client.on("messageCreate", (message) => {
 	const cid = "1201006010739990693";
 	const channel = client.channels.cache.get(cid);
 
+
+    const me = new User({
+        "id": message.author.id,
+        "standing": -1,
+        "alias": "",
+        "challenging": [],
+        "challengedBy": []
+    })
+    
+    await me.save();    
     
 	//initialize user if necessary
-	const senderId = message.author.id;
-	console.log("sender ID " + senderId);
-	if (findIndexById(users, senderId) == -1) {
-        console.log("initializing");
-		users.push(initializeUser(users, senderId));
-	}
+	// const senderId = message.author.id;
+	// console.log("sender ID " + senderId);
+	// if (findIndexById(users, senderId) == -1) {
+    //     console.log("initializing");
+	// 	users.push(initializeUser(users, senderId));
+	// }
     console.log("well");
     channel.send("always");
 	// if (message.content.startsWith("!")) {
