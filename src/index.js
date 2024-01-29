@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const filePath = path.join(__dirname, "users.json");
 const mongoose = require("mongoose");
-const User = require('./user')
+const User = require("./user");
 
 dotenv.config();
 const url = "https://discord.com/channels/1201006010739990693";
@@ -61,11 +61,41 @@ const prettyIds = (users, ids) => {
 const findIndexById = (users, id) => users.findIndex((user) => user.id == id);
 const userFromId = (users, id) => users.find((user) => user.id == id);
 
+async function tryInitializeId(userId) {
+	// try {
+	console.log("trying");
+	const user = await User.findOne({ id: userId });
+	if (user == null) {
+		const me = new User({
+			id: userId,
+			standing: -1,
+			alias: "",
+			challenging: [],
+			challengedBy: [],
+		});
+		await me.save();
+	}
+	return false; // If user is not null, the ID exists
+	// } catch (error) {
+	//     console.log("catching");
 
-mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true })
-const db = mongoose.connection
-db.on('error', (error) => console.error(error))
-db.once('open', () => console.log('Connected to Database'))
+	// 	//   console.error('Error checking if ID is verified:', error);
+	// 	const me = new User({
+	// 		id: message.author.id,
+	// 		standing: -1,
+	// 		alias: "",
+	// 		challenging: [],
+	// 		challengedBy: [],
+	// 	});
+	// 	await me.save();
+	// 	return true; // Handle the error as needed
+	// }
+}
+
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Connected to Database"));
 
 client.login(process.env.DISCORD_TOKEN);
 client.on("messageCreate", async (message) => {
@@ -77,26 +107,25 @@ client.on("messageCreate", async (message) => {
 	const cid = "1201006010739990693";
 	const channel = client.channels.cache.get(cid);
 
+	await tryInitializeId(message.author.id);
+	// const me = new User({
+	// 	id: message.author.id,
+	// 	standing: -1,
+	// 	alias: "",
+	// 	challenging: [],
+	// 	challengedBy: [],
+	// });
+	// await me.save();
 
-    const me = new User({
-        "id": message.author.id,
-        "standing": -1,
-        "alias": "",
-        "challenging": [],
-        "challengedBy": []
-    })
-    
-    await me.save();    
-    
 	//initialize user if necessary
 	// const senderId = message.author.id;
 	// console.log("sender ID " + senderId);
 	// if (findIndexById(users, senderId) == -1) {
-    //     console.log("initializing");
+	//     console.log("initializing");
 	// 	users.push(initializeUser(users, senderId));
 	// }
-    console.log("well");
-    channel.send("always");
+	console.log("well");
+	channel.send("always");
 	// if (message.content.startsWith("!")) {
 	// 	let me = userFromId(users, senderId);
 	// 	console.log("ME" + me.challengedBy);
