@@ -234,14 +234,14 @@ client.on("messageCreate", async (message) => {
 
 				//challenger reporting a loss
 				if (me.challenging.includes(opponentsId)) {
-					const challengee = await User.findOne({id: opponentsId});
+					const challengee = await User.findOne({ id: opponentsId });
 					await handleResult(me, "lost to", challengee);
 					channel.send("You lost to <@" + opponentsId + ">");
 				}
 
-				//challengee reporting a loss 
+				//challengee reporting a loss
 				if (me.challengedBy.includes(opponentsId)) {
-					const challenger = await User.findOne({id: opponentsId});
+					const challenger = await User.findOne({ id: opponentsId });
 					await handleResult(challenger, "defeated", me);
 					channel.send("You lost to <@" + opponentsId + ">");
 				}
@@ -257,6 +257,31 @@ client.on("messageCreate", async (message) => {
 					lb += `${user.standing}\t<@${user.id}>\t${user.wins}/${user.losses}\n`;
 				});
 				channel.send(lb);
+			case "cancel":
+			case "cc":
+				if (message.mentions.users.at(0) == undefined) break;
+				const enemyId = message.mentions.users.at(0).id;
+				const enemy = await User.findOne({ id: enemyId });
+
+				if (!enemy) break;
+				//remove challenge
+				console.log("me challenges");
+				console.log(me.challenging);
+
+				console.log("enemy challengedBy");
+				console.log(enemy.challengedBy);
+
+				me.challenging = me.challenging.filter(
+					(someId) => !isEqual(someId, enemyId)
+				);
+
+				enemy.challengedBy = enemy.challengedBy.filter(
+					(someId) => !isEqual(someId, me.id)
+				);
+
+				await me.save();
+				await enemy.save();
+				break;
 		}
 	}
 });
