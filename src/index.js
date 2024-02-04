@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const User = require("./user");
 
 dotenv.config();
-const url = "https://discord.com/channels/1201006010739990693";
+const url = process.env.URL;
 const { Client } = require("discord.js");
 const client = new Client({
 	intents: [
@@ -19,8 +19,6 @@ const client = new Client({
 });
 
 function isEqual(obj1, obj2) {
-	// Implement your custom equality check here, e.g., obj1.equals(obj2)
-	// You may need to modify this based on the actual implementation of your Long class
 	return obj1.toString() === obj2.toString();
 }
 
