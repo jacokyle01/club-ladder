@@ -22,7 +22,7 @@ function isEqual(obj1, obj2) {
 	// Implement your custom equality check here, e.g., obj1.equals(obj2)
 	// You may need to modify this based on the actual implementation of your Long class
 	return obj1.toString() === obj2.toString();
-  }
+}
 
 const handleResult = async (challenger, result, challengee) => {
 	//resolve pending challenges
@@ -38,13 +38,12 @@ const handleResult = async (challenger, result, challengee) => {
 	challengee.challengedBy = challengee.challengedBy.filter(
 		(opponent) => !isEqual(opponent, challenger.id)
 	);
-	//~~~ 
-	
-	console.log("challenger ID")
+	//~~~
+
+	console.log("challenger ID");
 	console.log(challenger.id);
 	console.log(challengee.challengedBy);
 	// challengee.challengedBy = [];
-
 
 	switch (result) {
 		case "defeated":
@@ -78,7 +77,6 @@ const handleResult = async (challenger, result, challengee) => {
 	}
 	await challenger.save();
 	await challengee.save();
-
 };
 
 function writeUsers(users) {
@@ -219,41 +217,38 @@ client.on("messageCreate", async (message) => {
 
 				//challenger reporting a win
 				if (me.challenging.includes(opponentId)) {
-					const challengee = await User.findOne({id: opponentId});
+					const challengee = await User.findOne({ id: opponentId });
 					await handleResult(me, "defeated", challengee);
 					channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
 				}
 
-				// if (me.challenging.includes(opponentId)) {
-				// 	const opponent = await User.findOne({ id: opponentId });
-
-				// 	//swap standings for now TODO
-				// 	let temp = me.standing;
-				// 	me.standing = opponent.standing;
-				// 	opponent.standing = temp;
-
-				// 	//assign streaks
-				// 	me.streak++;
-				// 	opponent.streak = 0;
-
-				// 	//assign W/L
-				// 	me.wins++;
-				// 	opponent.losses++;
-
-				// 	//remove this challenge attribute
-				// 	me.challenging = me.challenging.filter(
-				// 		(opponent) => opponent != opponentId
-				// 	);
-				// 	opponent.challengedBy = opponent.challengedBy.filter(
-				// 		(challenger) => challenger != me.id
-				// 	);
-
-				// 	await me.save();
-				// 	await opponent.save();
-				// 	channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
-				// }
-
+				//challengee reporting a win
+				if (me.challengedBy.includes(opponentId)) {
+					const challenger = await User.findOne({ id: opponentId });
+					await handleResult(challenger, "lost to", me);
+					channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
+				}
 				break;
+			case "lose":
+			case "l":
+				if (message.mentions.users.at(0) == undefined) break;
+				const opponentsId = message.mentions.users.at(0).id;
+
+				//challenger reporting a loss
+				if (me.challenging.includes(opponentsId)) {
+					const challengee = await User.findOne({id: opponentsId});
+					await handleResult(me, "lost to", challengee);
+					channel.send("You lost to <@" + opponentsId + ">");
+				}
+
+				//challengee reporting a loss 
+				if (me.challengedBy.includes(opponentsId)) {
+					const challenger = await User.findOne({id: opponentsId});
+					await handleResult(challenger, "defeated", me);
+					channel.send("You lost to <@" + opponentsId + ">");
+				}
+				break;
+
 			case "standings":
 			case "lb":
 				let lb = "";
