@@ -127,6 +127,13 @@ client.on("messageCreate", async (message) => {
 		args.shift();
 
 		switch (command) {
+			case "help":
+			case "?":
+				channel.send(
+					"!challenge @[someone] | Send a challenge your opponent.\n!win @[someone] 	    	| Record a win in a challenge\n!lose @[someone]  	  	| Record a loss in a challenge\n!cancel @[someone] 	  | Cancel a challenge.\n!standings 					      | Display the leaderboard\n!stats 		  					     | Display your stats: W/L ratio, standing, etc..\n!alias [name] 				     | Set your nickname."
+				);
+				break;
+
 			case "stats":
 				channel.send(
 					"Alias: " +
