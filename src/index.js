@@ -24,9 +24,6 @@ function isEqual(obj1, obj2) {
 
 const handleResult = async (challenger, result, challengee) => {
 	//resolve pending challenges
-	console.log("challengee ID");
-	console.log(challengee.id);
-	console.log(challenger.challenging);
 
 	//cast to string for long comparison ~~~
 	challenger.challenging = challenger.challenging.filter(
@@ -36,12 +33,6 @@ const handleResult = async (challenger, result, challengee) => {
 	challengee.challengedBy = challengee.challengedBy.filter(
 		(opponent) => !isEqual(opponent, challenger.id)
 	);
-	//~~~
-
-	console.log("challenger ID");
-	console.log(challenger.id);
-	console.log(challengee.challengedBy);
-	// challengee.challengedBy = [];
 
 	switch (result) {
 		case "defeated":
@@ -53,10 +44,20 @@ const handleResult = async (challenger, result, challengee) => {
 			challenger.wins++;
 			challengee.losses++;
 
-			//standings
-			let temp = challenger.standing;
-			challenger.standing = challengee.standing;
-			challengee.standing = temp;
+			//challenger takes challengee's standing, all in-between move down
+			const challengeeStanding = challengee.standing;
+			// console.log("challenge standing" + challengee.standing);
+			// console.log("challenger " + challenger.standing);
+			// console.log("challengee" + challengee.standing);
+			const passed = await User.find({
+				standing: { $lt: challenger.standing, $gte: challengee.standing },
+			});
+			passed.forEach((passedUser) => {
+				passedUser.standing++;
+				passedUser.save();
+			});
+
+			challenger.standing = challengeeStanding;
 
 			//TODO update "immunity"/etc...
 			break;
@@ -77,21 +78,13 @@ const handleResult = async (challenger, result, challengee) => {
 	await challengee.save();
 };
 
-function writeUsers(users) {
-	fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf8");
-}
-
 const prettyIds = (ids) => {
 	let pretty = "";
 	ids.forEach((id) => (pretty += " <@" + id + ">"));
 	return pretty;
 };
 
-const findIndexById = (users, id) => users.findIndex((user) => user.id == id);
-const userFromId = (users, id) => users.find((user) => user.id == id);
-
 async function tryInitializeId(userId) {
-	console.log("trying");
 	const user = await User.findOne({ id: userId });
 	if (user == null) {
 		const count = await User.countDocuments({});
@@ -125,23 +118,17 @@ client.on("messageCreate", async (message) => {
 	const botid = "1201005650885488690";
 	const channel = client.channels.cache.get(cid);
 
-	console.log("AUTHOR ID " + message.author.id);
 	await tryInitializeId(message.author.id);
-	console.log("well");
 	channel.send("always");
 	if (message.content.startsWith("!")) {
 		console.log("~~~~~~~~~~~~~~~~~~~~~");
 		let me = await User.findOne({ id: message.author.id });
-		console.log("ME" + me.challengedBy);
 		const command = message.content.split(" ").at(0).substring(1);
 		const args = message.content.split(" ");
 		args.shift();
-		console.log(args);
-		console.log(command);
 
 		switch (command) {
 			case "stats":
-				console.log(channel.id);
 				channel.send(
 					"Alias: " +
 						me.alias +
@@ -179,11 +166,9 @@ client.on("messageCreate", async (message) => {
 					break;
 				}
 
-				console.log("VS. " + challengeeId);
 				await tryInitializeId(challengeeId);
 
 				const challengee = await User.findOne({ id: challengeeId });
-				console.log(challengee);
 
 				//TODO more conditions
 				if (me.challenging.includes(challengeeId)) {
@@ -199,9 +184,7 @@ client.on("messageCreate", async (message) => {
 				}
 
 				//all conditions tested, initiate challenge
-				console.log("challengee ID " + challengeeId);
 				me.challenging.push(challengeeId);
-				console.log("challenger ID " + me.id);
 				challengee.challengedBy.push(me.id);
 				await me.save();
 				await challengee.save();
@@ -265,11 +248,6 @@ client.on("messageCreate", async (message) => {
 
 				if (!enemy) break;
 				//remove challenge
-				console.log("me challenges");
-				console.log(me.challenging);
-
-				console.log("enemy challengedBy");
-				console.log(enemy.challengedBy);
 
 				me.challenging = me.challenging.filter(
 					(someId) => !isEqual(someId, enemyId)
