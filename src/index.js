@@ -119,7 +119,6 @@ client.on("messageCreate", async (message) => {
 	const channel = client.channels.cache.get(cid);
 
 	await tryInitializeId(message.author.id);
-	channel.send("always");
 	if (message.content.startsWith("!")) {
 		console.log("~~~~~~~~~~~~~~~~~~~~~");
 		let me = await User.findOne({ id: message.author.id });
