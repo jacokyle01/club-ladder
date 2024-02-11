@@ -147,7 +147,7 @@ client.on("messageCreate", async (message) => {
 
 			case "stats":
 				channel.send(
-					"Alias: " +
+					"Name: " +
 						me.alias +
 						"\nStanding: " +
 						me.standing +
@@ -183,7 +183,7 @@ client.on("messageCreate", async (message) => {
 					break;
 				}
 
-				await tryInitializeId(challengeeId);
+				await tryInitializeId(theChallengee);
 				const challengee = await User.findOne({ id: challengeeId });
 
 				//TODO more conditions
@@ -253,7 +253,7 @@ client.on("messageCreate", async (message) => {
 				const users = await User.find({});
 				users.sort((u1, u2) => u1.standing - u2.standing);
 				users.forEach((user) => {
-					lb += `${user.standing}\t<@${user.id}>\t${user.wins}/${user.losses}\n`;
+					lb += `${user.standing}\t${user.alias}\t${user.wins}/${user.losses}\n`;
 				});
 				channel.send(lb);
 			case "cancel":
