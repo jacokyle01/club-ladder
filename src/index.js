@@ -84,14 +84,14 @@ const prettyIds = (ids) => {
 	return pretty;
 };
 
-async function tryInitializeId(userId) {
-	const user = await User.findOne({ id: userId });
-	if (user == null) {
+async function tryInitializeId(user) {
+	const findMe = await User.findOne({ id: user.id });
+	if (findMe == null) {
 		const count = await User.countDocuments({});
 		const me = new User({
-			id: userId,
+			id: user.id,
 			standing: count + 1,
-			alias: "",
+			alias: user.username,
 			challenging: [],
 			challengedBy: [],
 			wins: 0,
@@ -121,13 +121,21 @@ client.on("messageCreate", async (message) => {
 
 	console.log(channel);
 
-	await tryInitializeId(message.author.id);
+	await tryInitializeId(message.author);
 	if (message.content.startsWith("!")) {
 		console.log("~~~~~~~~~~~~~~~~~~~~~");
 		let me = await User.findOne({ id: message.author.id });
 		const command = message.content.split(" ").at(0).substring(1);
 		const args = message.content.split(" ");
 		args.shift();
+
+		//record mention
+		let theChallengee = null;
+		if (message.mentions.users.at(0)) {
+			console.log("Yes");
+			theChallengee = message.mentions.users.at(0);
+			// console.log(message.mentions);
+		}
 
 		switch (command) {
 			case "help":
@@ -176,7 +184,6 @@ client.on("messageCreate", async (message) => {
 				}
 
 				await tryInitializeId(challengeeId);
-
 				const challengee = await User.findOne({ id: challengeeId });
 
 				//TODO more conditions
