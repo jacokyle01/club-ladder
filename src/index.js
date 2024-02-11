@@ -78,9 +78,12 @@ const handleResult = async (challenger, result, challengee) => {
 	await challengee.save();
 };
 
-const prettyIds = (ids) => {
+const prettyIds = async (ids) => {
 	let pretty = "";
-	ids.forEach((id) => (pretty += " <@" + id + ">"));
+	for (const _id of ids) {
+		const theUser = await User.findOne({id: _id});
+		pretty += theUser.alias + " ";
+	}
 	return pretty;
 };
 
@@ -119,7 +122,7 @@ client.on("messageCreate", async (message) => {
 	// const channel = client.channels.cache.get(process.env.CID);
 	const channel = client.channels.cache.get(process.env.CID);
 
-	console.log(channel);
+	// console.log(channel);
 
 	await tryInitializeId(message.author);
 	if (message.content.startsWith("!")) {
@@ -156,9 +159,9 @@ client.on("messageCreate", async (message) => {
 						"\nStreak: " +
 						me.streak +
 						"\nChallenging: " +
-						prettyIds(me.challenging) +
+						(await prettyIds(me.challenging)) +
 						"\nChallenged by " +
-						prettyIds(me.challengedBy) +
+						(await prettyIds(me.challengedBy)) +
 						"\nW/L ratio: " +
 						me.wins +
 						"/" +
@@ -216,21 +219,25 @@ client.on("messageCreate", async (message) => {
 			case "win":
 			case "w":
 				if (theChallengee == null) break;
-				const opponentId = theChallengeeId
+				const opponentId = theChallengeeId;
 				//find who was the challenger and challengee
 
 				//challenger reporting a win
 				if (me.challenging.includes(opponentId)) {
 					const challengee = await User.findOne({ id: opponentId });
 					await handleResult(me, "defeated", challengee);
-					channel.send("🎉Congratulations! You beat " + theChallengee.username + "🎉");
+					channel.send(
+						"🎉Congratulations! You beat " + theChallengee.username + "🎉"
+					);
 				}
 
 				//challengee reporting a win
 				if (me.challengedBy.includes(opponentId)) {
 					const challenger = await User.findOne({ id: opponentId });
 					await handleResult(challenger, "lost to", me);
-					channel.send("🎉Congratulations! You beat <@" + theChallengee.username + ">🎉");
+					channel.send(
+						"🎉Congratulations! You beat <@" + theChallengee.username + ">🎉"
+					);
 				}
 				break;
 			case "lose":
