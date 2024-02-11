@@ -131,9 +131,11 @@ client.on("messageCreate", async (message) => {
 
 		//record mention
 		let theChallengee = null;
+		let theChallengeeId = null;
 		if (message.mentions.users.at(0)) {
 			console.log("Yes");
 			theChallengee = message.mentions.users.at(0);
+			theChallengeeId = theChallengee.id;
 			// console.log(message.mentions);
 		}
 
@@ -172,22 +174,27 @@ client.on("messageCreate", async (message) => {
 				break;
 			case "challenge": // ex. !challenge @Presiident
 			case "vs":
-				if (message.mentions.users.at(0) == undefined) break;
-				const challengeeId = message.mentions.users.at(0).id;
-				if (challengeeId == botid) {
+				if (theChallengee == null) break;
+				if (theChallengeeId == botid) {
 					channel.send("You can't challenge the robot!");
 					break;
 				}
-				if (challengeeId == me.id) {
+				if (theChallengeeId == me.id) {
 					channel.send("You can't challenge yourself!");
 					break;
 				}
 
-				await tryInitializeId(theChallengee);
-				const challengee = await User.findOne({ id: challengeeId });
+				//is challengee registered?
+				const challengee = await User.findOne({ id: theChallengeeId });
+
+				//challengee must be registered
+				if (!challengee) {
+					channel.send("This person is not playing in the ladder");
+					break;
+				}
 
 				//TODO more conditions
-				if (me.challenging.includes(challengeeId)) {
+				if (me.challenging.includes(theChallengeeId)) {
 					channel.send("You are already challenging this person");
 					break;
 				}
@@ -200,7 +207,7 @@ client.on("messageCreate", async (message) => {
 				}
 
 				//all conditions tested, initiate challenge
-				me.challenging.push(challengeeId);
+				me.challenging.push(theChallengeeId);
 				challengee.challengedBy.push(me.id);
 				await me.save();
 				await challengee.save();
