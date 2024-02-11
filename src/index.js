@@ -114,9 +114,12 @@ client.on("messageCreate", async (message) => {
 		return;
 	}
 
-	const cid = "1201006010739990693";
 	const botid = "1201005650885488690";
-	const channel = client.channels.cache.get(cid);
+	// console.log(process.env.CID);
+	// const channel = client.channels.cache.get(process.env.CID);
+	const channel = client.channels.cache.get(process.env.CID);
+
+	console.log(channel);
 
 	await tryInitializeId(message.author.id);
 	if (message.content.startsWith("!")) {
