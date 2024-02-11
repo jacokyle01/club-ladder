@@ -230,7 +230,7 @@ client.on("messageCreate", async (message) => {
 				if (me.challengedBy.includes(opponentId)) {
 					const challenger = await User.findOne({ id: opponentId });
 					await handleResult(challenger, "lost to", me);
-					channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
+					channel.send("🎉Congratulations! You beat <@" + theChallengee.username + ">🎉");
 				}
 				break;
 			case "lose":
@@ -242,14 +242,14 @@ client.on("messageCreate", async (message) => {
 				if (me.challenging.includes(opponentsId)) {
 					const challengee = await User.findOne({ id: opponentsId });
 					await handleResult(me, "lost to", challengee);
-					channel.send("You lost to <@" + opponentsId + ">");
+					channel.send("You lost! Better luck next time.");
 				}
 
 				//challengee reporting a loss
 				if (me.challengedBy.includes(opponentsId)) {
 					const challenger = await User.findOne({ id: opponentsId });
 					await handleResult(challenger, "defeated", me);
-					channel.send("You lost to <@" + opponentsId + ">");
+					channel.send("You lost! Better luck next time");
 				}
 				break;
 
