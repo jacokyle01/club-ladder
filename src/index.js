@@ -215,15 +215,15 @@ client.on("messageCreate", async (message) => {
 				break;
 			case "win":
 			case "w":
-				if (message.mentions.users.at(0) == undefined) break;
-				const opponentId = message.mentions.users.at(0).id;
+				if (theChallengee == null) break;
+				const opponentId = theChallengeeId
 				//find who was the challenger and challengee
 
 				//challenger reporting a win
 				if (me.challenging.includes(opponentId)) {
 					const challengee = await User.findOne({ id: opponentId });
 					await handleResult(me, "defeated", challengee);
-					channel.send("🎉Congratulations! You beat <@" + opponentId + ">🎉");
+					channel.send("🎉Congratulations! You beat " + theChallengee.username + "🎉");
 				}
 
 				//challengee reporting a win
