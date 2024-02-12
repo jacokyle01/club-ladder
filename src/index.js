@@ -81,7 +81,7 @@ const handleResult = async (challenger, result, challengee) => {
 const prettyIds = async (ids) => {
 	let pretty = "";
 	for (const _id of ids) {
-		const theUser = await User.findOne({id: _id});
+		const theUser = await User.findOne({ id: _id });
 		pretty += theUser.alias + " ";
 	}
 	return pretty;
@@ -143,6 +143,9 @@ client.on("messageCreate", async (message) => {
 		}
 
 		switch (command) {
+			case "register":
+				channel.send("You've registered for the ladder");
+				break;
 			case "help":
 			case "?":
 				channel.send(
@@ -236,7 +239,7 @@ client.on("messageCreate", async (message) => {
 					const challenger = await User.findOne({ id: opponentId });
 					await handleResult(challenger, "lost to", me);
 					channel.send(
-						"🎉Congratulations! You beat <@" + theChallengee.username + ">🎉"
+						"🎉Congratulations! You beat" + theChallengee.username + "🎉"
 					);
 				}
 				break;
